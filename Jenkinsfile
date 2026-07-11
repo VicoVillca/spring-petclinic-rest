@@ -12,7 +12,13 @@ pipeline {
         stage('Buils') {
             steps {
                 // Usamos test
-                sh 'mvn --version'
+                sh 'mvn clean test -B -ntp'
+            }
+        }
+		stage('Buils') {
+            steps {
+                // Usamos test
+                sh 'mvn package -B -ntp
             }
         }
     }
