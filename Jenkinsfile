@@ -8,27 +8,32 @@ pipeline {
     }
     
     stages {
-
+        // 1. Compilar
         stage('Compile') {
             steps {
-                // Usamos test
                 sh 'mvn clean compile -B -ntp'
             }
         }
-		stage('Test') {
+        
+        // 2. Probar (AQUÍ FALLAN LAS PRUEBAS)
+        stage('Test') {
             steps {
-                // Usamos test
                 sh 'mvn test -B -ntp'
             }
-        }
-		stage('Buils') {
-            steps {
-                // Usamos test
-                sh 'mvn package -B -ntp'
+            post {
+                // Publicar resultados aunque fallen
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
             }
         }
-		
-		
+        
+        // 3. Empaquetar (se salta porque falló Test)
+        stage('Build') {  // ← Corregido: "Build" en lugar de "Buils"
+            steps {
+                sh 'mvn package -DskipTests -B -ntp'
+            }
+        }
     }
     
     post {
