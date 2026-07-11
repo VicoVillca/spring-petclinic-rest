@@ -2,29 +2,33 @@ pipeline {
     agent any
     
     tools {
+        // ✅ Correcto - Coincide con tu configuración
         maven 'mvn.3.9.9'
         jdk 'jdk17'
     }
     
     stages {
-        stage('Clean y Test') {
+
+        stage('Compile') {
             steps {
-                sh 'mvn clean test -B -ntp'
-            }
-            post {
-                // ✅ Publica los resultados para ver qué pruebas fallaron
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
+                // Usamos test
+                sh 'mvn clean compile -B -ntp'
             }
         }
-        
-        stage('Build') {
+		stage('Test') {
             steps {
-                // Si las pruebas fallaron, esto no se ejecutará
+                // Usamos test
+                sh 'mvn test -B -ntp'
+            }
+        }
+		stage('Buils') {
+            steps {
+                // Usamos test
                 sh 'mvn package -B -ntp'
             }
         }
+		
+		
     }
     
     post {
