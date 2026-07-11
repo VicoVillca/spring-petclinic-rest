@@ -9,7 +9,7 @@ pipeline {
     
     stages {
 
-        stage('Buils') {
+        stage('Clean') {
             steps {
                 // Usamos test
                 sh 'mvn clean test -B -ntp'
