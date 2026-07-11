@@ -18,7 +18,7 @@ pipeline {
 		stage('Buils') {
             steps {
                 // Usamos test
-                sh 'mvn package -B -ntp
+                sh 'mvn package -B -ntp'
             }
         }
     }
