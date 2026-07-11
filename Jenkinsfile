@@ -4,7 +4,6 @@ pipeline {
     tools {
         // ✅ Correcto - Coincide con tu configuración
         maven 'mvn.3.9.9'
-        jdk 'jdk17'
     }
     
     stages {
