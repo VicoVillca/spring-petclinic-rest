@@ -8,11 +8,6 @@ pipeline {
     }
     
     stages {
-        stage('Clone Git') {
-            steps {
-                git branch: 'main', url: 'https://github.com/VicoVillca/spring-petclinic-rest.git'
-            }
-        }
         stage('Test') {
             steps {
                 // Usamos test
