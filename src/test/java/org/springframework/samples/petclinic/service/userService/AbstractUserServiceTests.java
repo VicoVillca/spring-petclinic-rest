@@ -12,7 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public abstract class AbstractUserServiceTests {
 
-    @Autowired
+    @Autowir
     private UserService userService;
 
     @BeforeEach
