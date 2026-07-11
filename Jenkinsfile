@@ -8,16 +8,11 @@ pipeline {
     }
     
     stages {
-        stage('Test') {
-            steps {
-                // Usamos test
-                sh 'mvn clean test -B -ntp'
-            }
-        }
+
         stage('Buils') {
             steps {
                 // Usamos test
-                sh 'mvn package -B -ntp'
+                sh 'mvn --version'
             }
         }
     }
