@@ -1,56 +1,34 @@
 pipeline {
     agent any
+    
     tools {
-        maven 'maven3.9.14'
+        // ✅ Correcto - Coincide con tu configuración
+        maven 'mvn.3.9.9'
+        jdk 'jdk17'
     }
-    triggers {
-        // cron('* * * * *')
-        githubPush()
-    }
+    
     stages {
-        // stage('Checkout SCM') {
-        //     steps {
-        //         git branch: 'master', url: 'https://github.com/devops-instructor/spring-petclinic-rest.git'
-        //     }
-        // }
-        stage('Compile') {
+        stage('Clone Git') {
             steps {
-                sh 'mvn clean compile -B -ntp'
+                git branch: 'main', url: 'https://github.com/VicoVillca/spring-petclinic-rest.git'
             }
         }
         stage('Test') {
             steps {
-                sh 'mvn test -B -ntp'
-                // sh 'mvn test -Dmaven.test.failure.ignore=true -B -ntp'
-            }
-            post { 
-                success {
-                    junit 'target/surefire-reports/*.xml'
-                    // junit skipMarkingBuildUnstable: true, testResults: 'target/surefire-reports/*.xml'
-                }
+                // Usamos test
+                sh 'mvn clean test -B -ntp'
             }
         }
-        stage('Coverage') {
+        stage('Buils') {
             steps {
-                sh 'mvn jacoco:report -B -ntp'
-            }
-            post { 
-                success {
-                    recordCoverage(tools: [[parser: 'JACOCO']])
-                }
-            }
-        }
-        stage('Package') {
-            steps {
-                sh 'mvn package -DskipTests -B -ntp'
+                // Usamos test
+                sh 'mvn package -B -ntp'
             }
         }
     }
-    post { 
-        success {
-            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-        }
-        cleanup {
+    
+    post {
+        always {
             cleanWs()
         }
     }
