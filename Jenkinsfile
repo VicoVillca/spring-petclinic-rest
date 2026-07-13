@@ -4,6 +4,9 @@ pipeline {
     tools {
         maven 'mvn.3.9.9'
     }
+    triggers {
+        githubPush()
+    }
     
     stages {
         stage('Compile') {
