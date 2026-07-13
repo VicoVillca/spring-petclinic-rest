@@ -26,6 +26,18 @@ pipeline {
                 }
             }
         }
+
+        stage('Coverage') {
+            steps {
+                sh 'mvn jacoco:report -B -ntp'
+            }
+            post {
+            
+                always {
+                    recordCoverage(tools: [[parser: 'JACOCO']])
+                }
+            }
+        }
         
         // 3. Empaquetar (se salta porque falló Test)
         stage('Build') {  // ← Corregido: "Build" en lugar de "Buils"
