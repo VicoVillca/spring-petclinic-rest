@@ -6,20 +6,17 @@ pipeline {
     }
     
     stages {
-        // 1. Compilar
         stage('Compile') {
             steps {
                 sh 'mvn clean compile -B -ntp'
             }
         }
         
-        // 2. Probar (AQUÍ FALLAN LAS PRUEBAS)
         stage('Test') {
             steps {
                 sh 'mvn test -B -ntp'
             }
             post {
-                // Publicar resultados aunque fallen
                 always {
                     junit 'target/surefire-reports/*.xml'
                 }
@@ -31,15 +28,13 @@ pipeline {
                 sh 'mvn jacoco:report -B -ntp'
             }
             post {
-            
                 always {
                     recordCoverage(tools: [[parser: 'JACOCO']])
                 }
             }
         }
         
-        // 3. Empaquetar (se salta porque falló Test)
-        stage('Build') {  // ← Corregido: "Build" en lugar de "Buils"
+        stage('Build') {
             steps {
                 sh 'mvn package -DskipTests -B -ntp'
             }
@@ -47,10 +42,9 @@ pipeline {
     }
     
     post {
-        success {
-            archiveArtifacts artifacts: 'target/*.jar'
-        }
         always {
+            // ✅ PRIMERO archivar, DESPUÉS limpiar
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             cleanWs()
         }
     }
