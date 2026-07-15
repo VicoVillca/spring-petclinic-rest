@@ -61,7 +61,7 @@ pipeline {
         //         }
         //     }
         // }
-        stage('SonarQube') {
+        /*stage('SonarQube') {
             steps {
                 withSonarQubeEnv('sonarqube'){
                     sh 'env | sort'
@@ -81,13 +81,11 @@ pipeline {
                     }
                 }
             }
-        }        
+        } */       
     }
     post { 
         success {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-        }
-        cleanup {
             cleanWs()
         }
     }
