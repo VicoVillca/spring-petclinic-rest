@@ -51,42 +51,44 @@ Spring PetClinic REST es una API RESTful desarrollada con Spring Boot para la ge
 
 ## 📦 Instalación y Uso
 
-**Requisitos Previos**
+## Requisitos Previos
+
 - Java 21
 - Maven 3.8.8
 - Git
 
-**Clonar el Repositorio**
+## Clonar el Repositorio
 
 `git clone https://github.com/VicoVillca/spring-petclinic-rest.git`
 
 `cd spring-petclinic-rest`
 
-**Compilar el Proyecto**
+## Compilar el Proyecto
 
 `mvn clean compile`
 
-**Ejecutar Pruebas**
+## Ejecutar Pruebas
 
 `mvn test`
 
-**Generar Reporte de Cobertura**
+## Generar Reporte de Cobertura
 
 `mvn jacoco:report`
 
-**Generar el Artefacto**
+## Generar el Artefacto
 
 `mvn package -DskipTests`
 
-**Ejecutar la Aplicación**
+## Ejecutar la Aplicación
 
 `java -jar target/spring-petclinic-rest-*.jar`
 
-**Acceder a la API**
+## Acceder a la API
 
 `http://localhost:9966/petclinic/api/`
 
 ## 📂 Estructura del Proyecto
+
 spring-petclinic-rest/
 ├── src/
 │ ├── main/
