@@ -1,12 +1,12 @@
 pipeline {
     agent {
         docker {
-            image 'maven:3.8.8-eclipse-temurin-21'  // Versión estable para Artifactory
+            image 'maven:3.8.8-eclipse-temurin-21'
         }
     }
     
     triggers {
-        githubPush()  // Ejecuta en cada push a GitHub
+        githubPush()
     }
     
     environment {
@@ -27,7 +27,7 @@ pipeline {
         }
         
         // ============================================
-        // STAGE 2: TEST (JUnit)
+        // STAGE 2: TEST
         // ============================================
         stage('Test') {
             steps {
@@ -39,14 +39,11 @@ pipeline {
                 success {
                     junit 'target/surefire-reports/*.xml'
                 }
-                failure {
-                    echo '❌ Algunos tests fallaron'
-                }
             }
         }
         
         // ============================================
-        // STAGE 3: COVERAGE (JaCoCo)
+        // STAGE 3: COVERAGE
         // ============================================
         stage('Coverage') {
             steps {
@@ -68,7 +65,6 @@ pipeline {
             steps {
                 echo '🔍 ANALIZANDO CÓDIGO CON SONARQUBE...'
                 withSonarQubeEnv('sonarqube') {
-                    sh 'env | sort'
                     script {
                         if (env.CHANGE_ID) {
                             sh """
@@ -79,7 +75,7 @@ pipeline {
                             """
                         } else {
                             def branchName = GIT_BRANCH.replaceFirst('^origin/', '')
-                            println "Branch name: ${branchName}"
+                            echo "Branch name: ${branchName}"
                             sh "mvn sonar:sonar -B -ntp -Dsonar.branch.name=${branchName}"
                         }
                     }
@@ -89,61 +85,37 @@ pipeline {
         }
         
         // ============================================
-        // STAGE 5: PACKAGE (Generar JAR)
+        // STAGE 5: PACKAGE + DEPLOY A ARTIFACTORY
         // ============================================
-        stage('Package') {
+        stage('Package and Deploy to Artifactory') {
             steps {
-                echo '📦 EMPAQUETANDO PROYECTO...'
-                sh 'mvn package -DskipTests -B -ntp'
-                echo '✅ JAR generado exitosamente'
-            }
-        }
-        
-        // ============================================
-        // STAGE 6: DEPLOY A ARTIFACTORY
-        // ============================================
-        stage('Deploy a Artifactory') {
-            steps {
-                echo '📤 SUBIENDO ARTEFACTO A ARTIFACTORY...'
+                echo '📦 EMPAQUETANDO Y SUBIENDO A ARTIFACTORY...'
                 
                 script {
                     // Configurar Artifactory
                     def server = Artifactory.server 'artifactory'
                     
-                    // Leer información del pom.xml
-                    def pom = readMavenPom file: 'pom.xml'
-                    def groupIdPath = pom.groupId.replaceAll("\\.", "/")
+                    // Configurar repositorios
+                    def releases = 'spring-petclinic-rest-release'
+                    def snapshots = 'spring-petclinic-rest-snapshot'
                     
-                    // Determinar repositorio según versión
-                    def repo = pom.version.endsWith("SNAPSHOT") ? 
-                        'spring-petclinic-rest-snapshot' : 
-                        'spring-petclinic-rest-release'
+                    // Crear build de Maven con Artifactory
+                    def rtMaven = Artifactory.newMavenBuild()
                     
-                    // Crear spec de subida
-                    def uploadSpec = """
-                        {
-                            "files": [
-                                {
-                                    "pattern": "target/*.jar",
-                                    "target": "${repo}/${groupIdPath}/${pom.artifactId}/${pom.version}/",
-                                    "regexp": "false",
-                                    "props": "build.url=${RUN_DISPLAY_URL};build.user=${USER};build.number=${BUILD_NUMBER}"
-                                }
-                            ]
-                        }
-                    """
+                    // Configurar deployer
+                    rtMaven.deployer server: server, releaseRepo: releases, snapshotRepo: snapshots
                     
-                    println "📦 Artefacto: ${pom.artifactId}-${pom.version}.jar"
-                    println "📁 Repositorio: ${repo}"
-                    println "📂 Ruta: ${groupIdPath}/${pom.artifactId}/${pom.version}/"
+                    // Añadir propiedades personalizadas
+                    rtMaven.deployer
+                        .addProperty('build.url', env.RUN_DISPLAY_URL)
+                        .addProperty('build.user', env.USER)
+                        .addProperty('build.number', env.BUILD_NUMBER)
+                        .addProperty('build.job', env.JOB_NAME)
                     
-                    // Subir a Artifactory
-                    server.upload spec: uploadSpec
+                    // ✅ Ejecutar Maven y subir artefactos automáticamente
+                    def buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install -B -ntp'
                     
-                    // Publicar build info
-                    def buildInfo = server.buildInfo()
-                    buildInfo.name = "${JOB_NAME}"
-                    buildInfo.number = "${BUILD_NUMBER}"
+                    // Publicar build info en Artifactory
                     server.publishBuildInfo buildInfo
                     
                     echo '✅ Artefacto subido exitosamente a Artifactory!'
