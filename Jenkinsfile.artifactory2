@@ -159,7 +159,7 @@ pipeline {
         success {
             echo '🎉 PIPELINE COMPLETADO EXITOSAMENTE!'
             echo '📦 Artefacto disponible en Artifactory'
-            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            //archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
         }
         failure {
             echo '❌ El pipeline falló. Revisa los logs para más detalles.'
