@@ -102,7 +102,7 @@ pipeline {
         // ============================================
         // STAGE 6: DEPLOY A ARTIFACTORY
         // ============================================
-        stage('Deploy a Artifactory') {
+        /*stage('Deploy a Artifactory') {
             steps {
                 echo '📤 SUBIENDO ARTEFACTO A ARTIFACTORY...'
                 
@@ -149,7 +149,7 @@ pipeline {
                     echo '✅ Artefacto subido exitosamente a Artifactory!'
                 }
             }
-        }
+        }*/
     }
     
     // ============================================
