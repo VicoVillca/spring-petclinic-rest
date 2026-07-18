@@ -1,0 +1,171 @@
+pipeline {
+    agent {
+        docker {
+            image 'maven:3.8.8-eclipse-temurin-21'  // Versión estable para Artifactory
+        }
+    }
+    
+    triggers {
+        githubPush()  // Ejecuta en cada push a GitHub
+    }
+    
+    environment {
+        MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2"
+        SONAR_USER_HOME = "${WORKSPACE}/.sonar"
+    }
+    
+    stages {
+        // ============================================
+        // STAGE 1: COMPILE
+        // ============================================
+        stage('Compile') {
+            steps {
+                echo '📦 COMPILANDO PROYECTO...'
+                sh 'mvn clean compile -B -ntp'
+                echo '✅ Compilación completada'
+            }
+        }
+        
+        // ============================================
+        // STAGE 2: TEST (JUnit)
+        // ============================================
+        stage('Test') {
+            steps {
+                echo '🧪 EJECUTANDO TESTS...'
+                sh 'mvn test -B -ntp'
+                echo '✅ Tests completados'
+            }
+            post {
+                success {
+                    junit 'target/surefire-reports/*.xml'
+                }
+                failure {
+                    echo '❌ Algunos tests fallaron'
+                }
+            }
+        }
+        
+        // ============================================
+        // STAGE 3: COVERAGE (JaCoCo)
+        // ============================================
+        stage('Coverage') {
+            steps {
+                echo '📊 GENERANDO REPORTE DE COBERTURA...'
+                sh 'mvn jacoco:report -B -ntp'
+                echo '✅ Reporte de cobertura generado'
+            }
+            post {
+                success {
+                    recordCoverage(tools: [[parser: 'JACOCO']])
+                }
+            }
+        }
+        
+        // ============================================
+        // STAGE 4: SONARQUBE
+        // ============================================
+        stage('SonarQube') {
+            steps {
+                echo '🔍 ANALIZANDO CÓDIGO CON SONARQUBE...'
+                withSonarQubeEnv('sonarqube') {
+                    sh 'env | sort'
+                    script {
+                        if (env.CHANGE_ID) {
+                            sh """
+                                mvn sonar:sonar -B -ntp \
+                                -Dsonar.pullrequest.key=${env.CHANGE_ID} \
+                                -Dsonar.pullrequest.branch=${env.CHANGE_BRANCH} \
+                                -Dsonar.pullrequest.base=${env.CHANGE_TARGET}
+                            """
+                        } else {
+                            def branchName = GIT_BRANCH.replaceFirst('^origin/', '')
+                            println "Branch name: ${branchName}"
+                            sh "mvn sonar:sonar -B -ntp -Dsonar.branch.name=${branchName}"
+                        }
+                    }
+                }
+                echo '✅ Análisis SonarQube completado'
+            }
+        }
+        
+        // ============================================
+        // STAGE 5: PACKAGE (Generar JAR)
+        // ============================================
+        stage('Package') {
+            steps {
+                echo '📦 EMPAQUETANDO PROYECTO...'
+                sh 'mvn package -DskipTests -B -ntp'
+                echo '✅ JAR generado exitosamente'
+            }
+        }
+        
+        // ============================================
+        // STAGE 6: DEPLOY A ARTIFACTORY
+        // ============================================
+        stage('Deploy a Artifactory') {
+            steps {
+                echo '📤 SUBIENDO ARTEFACTO A ARTIFACTORY...'
+                
+                script {
+                    // Configurar Artifactory
+                    def server = Artifactory.server 'artifactory'
+                    
+                    // Leer información del pom.xml
+                    def pom = readMavenPom file: 'pom.xml'
+                    def groupIdPath = pom.groupId.replaceAll("\\.", "/")
+                    
+                    // Determinar repositorio según versión
+                    def repo = pom.version.endsWith("SNAPSHOT") ? 
+                        'spring-petclinic-rest-snapshot' : 
+                        'spring-petclinic-rest-release'
+                    
+                    // Crear spec de subida
+                    def uploadSpec = """
+                        {
+                            "files": [
+                                {
+                                    "pattern": "target/*.jar",
+                                    "target": "${repo}/${groupIdPath}/${pom.artifactId}/${pom.version}/",
+                                    "regexp": "false",
+                                    "props": "build.url=${RUN_DISPLAY_URL};build.user=${USER};build.number=${BUILD_NUMBER}"
+                                }
+                            ]
+                        }
+                    """
+                    
+                    println "📦 Artefacto: ${pom.artifactId}-${pom.version}.jar"
+                    println "📁 Repositorio: ${repo}"
+                    println "📂 Ruta: ${groupIdPath}/${pom.artifactId}/${pom.version}/"
+                    
+                    // Subir a Artifactory
+                    server.upload spec: uploadSpec
+                    
+                    // Publicar build info
+                    def buildInfo = server.buildInfo()
+                    buildInfo.name = "${JOB_NAME}"
+                    buildInfo.number = "${BUILD_NUMBER}"
+                    server.publishBuildInfo buildInfo
+                    
+                    echo '✅ Artefacto subido exitosamente a Artifactory!'
+                }
+            }
+        }
+    }
+    
+    // ============================================
+    // POST - ACCIONES FINALES
+    // ============================================
+    post {
+        success {
+            echo '🎉 PIPELINE COMPLETADO EXITOSAMENTE!'
+            echo '📦 Artefacto disponible en Artifactory'
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+        }
+        failure {
+            echo '❌ El pipeline falló. Revisa los logs para más detalles.'
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
