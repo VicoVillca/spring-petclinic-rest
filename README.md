@@ -59,7 +59,9 @@ Spring PetClinic REST es una API RESTful desarrollada con Spring Boot para la ge
 
    - SonarQube: http://3.91.34.10:9000
 
-   - JFrog Artifactory: http://3.91.34.10:8081/artifactory
+   - JFrog Artifactory Admin: http://3.91.34.10:8082
+
+   - JFrog Artifactory Para servicios: http://3.91.34.10:8081
 
 2. **Repositorio GitHub**:
 
@@ -75,34 +77,7 @@ Spring PetClinic REST es una API RESTful desarrollada con Spring Boot para la ge
 
 ```
 URL: http://3.91.34.10:8080
-Usuario: admin
-Contraseña: [la que configuraste]
-```
 
-#### 1.2 Instalar Plugins Necesarios
-
-Ir a: **Manage Jenkins** → **Manage Plugins** → **Available**
-
-Instalar:
-
-- ✅ **Pipeline** (ya viene instalado)
-- ✅ **SonarQube Scanner**
-- ✅ **Artifactory Plugin**
-- ✅ **Git Plugin**
-- ✅ **Docker Pipeline**
-
-#### 1.3 Configurar Credenciales de GitHub
-
-Ir a: **Manage Jenkins** → **Credentials** → **System** → **Global credentials** → **Add Credentials**
-
-```
-Kind: Username with password
-Scope: Global
-Username: [tu usuario de GitHub]
-Password: [tu token de acceso personal]
-ID: github-credentials
-Description: GitHub Credentials
-```
 
 #### 1.4 Configurar SonarQube en Jenkins
 
@@ -146,7 +121,7 @@ Buscar **Artifactory**:
 
 ```
 Server ID: artifactory
-URL: http://3.91.34.10:8081/artifactory
+URL: http://3.91.34.10:8081
 Credentials: [usuario/clave de Artifactory]
 ```
 
@@ -161,16 +136,6 @@ ID: artifactory-credentials
 Description: Artifactory Credentials
 ```
 
-#### 1.6 Configurar Maven en Jenkins
-
-Ir a: **Manage Jenkins** → **Tools** → **Maven installations**
-
-```
-Name: maven-3
-Install automatically: ✅
-```
-
----
 
 ### PASO 2: Configurar SonarQube
 
@@ -178,8 +143,6 @@ Install automatically: ✅
 
 ```
 URL: http://3.91.34.10:9000
-Usuario: admin
-Contraseña: admin (cambiar al primer inicio)
 ```
 
 #### 2.2 Crear Proyecto
@@ -213,9 +176,7 @@ Contraseña: admin (cambiar al primer inicio)
 #### 3.1 Acceder a Artifactory
 
 ```
-URL: http://3.91.34.10:8081/artifactory
-Usuario: admin
-Contraseña: [la que configuraste]
+URL: http://3.91.34.10:8082
 ```
 
 #### 3.2 Crear Repositorios Maven
@@ -322,7 +283,7 @@ Verificar:
 #### 5.3 En Artifactory
 
 ```
-URL: http://3.91.34.10:8081/artifactory/webapp/#/home
+URL: http://3.91.34.10:8082
 ```
 
 Verificar:
@@ -365,37 +326,6 @@ stages {
 }
 ```
 
----
-
-## 🚨 Solución de Problemas Comunes
-
-**Error: Not authorized en SonarQube**
-
-Solución: Verificar que el token de SonarQube esté correctamente configurado en Jenkins.
-
-**Error: Couldn$t find maven installation**
-
-Solución: Configurar Maven en **Manage Jenkins** → **Tools** → **Maven installations**.
-
-**Error: Connection refused en Artifactory**
-
-Solución: Verificar que Artifactory esté corriendo en http://3.91.34.10:8081.
-
-**Error: Permission denied al subir a Artifactory**
-
-Solución: Verificar que los repositorios spring-petclinic-rest-release y spring-petclinic-rest-snapshot existan.
-
----
-
-## 📊 Estado del Proyecto
-
-| Etapa | Estado |
-|-------|--------|
-| Compilación | ✅ |
-| Tests | ✅ |
-| Cobertura | ✅ |
-| SonarQube | ✅ |
-| Artifactory | ✅ |
 
 ---
 
@@ -405,30 +335,3 @@ Solución: Verificar que los repositorios spring-petclinic-rest-release y spring
 
 - GitHub: https://github.com/VicoVillca
 
-## 📄 Licencia
-
-MIT License
-
----
-
-## 📌 Notas Finales
-
-**¡Importante!** Para que el pipeline funcione correctamente:
-
-1. **Jenkinsfile** debe estar en la raíz del proyecto
-
-2. **Rama main** debe tener el código más reciente
-
-3. **SonarQube** debe estar corriendo antes de ejecutar el pipeline
-
-4. **Artifactory** debe tener los repositorios creados
-
-**Ejecución del Pipeline**:
-
-1. Crear nuevo Pipeline en Jenkins
-
-2. Configurar con Git y rama main
-
-3. Ejecutar **Build Now**
-
-4. Esperar ~2-3 minutos para que complete
