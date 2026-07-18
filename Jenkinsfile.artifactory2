@@ -87,41 +87,33 @@ pipeline {
         // ============================================
         // STAGE 5: PACKAGE + DEPLOY A ARTIFACTORY
         // ============================================
-        stage('Package and Deploy to Artifactory') {
+        stage('Forma 1 - Artifactory - RtMaven') {
             steps {
-                echo '📦 EMPAQUETANDO Y SUBIENDO A ARTIFACTORY...'
-                
+                echo 'Forma 1 - Artifactory - RtMaven'
+
                 script {
-                    // Configurar Artifactory
-                    def server = Artifactory.server 'artifactory'
-                    
-                    // Configurar repositorios
+
+                    sh 'env | sort'
+                    sh 'mvn --version'
+                    env.MAVEN_HOME = '/usr/share/maven'
+
                     def releases = 'spring-petclinic-rest-release'
                     def snapshots = 'spring-petclinic-rest-snapshot'
-                    
-                    // Crear build de Maven con Artifactory
+
+                    def server = Artifactory.server 'artifactory'
+
                     def rtMaven = Artifactory.newMavenBuild()
-                    
-                    // Configurar deployer
                     rtMaven.deployer server: server, releaseRepo: releases, snapshotRepo: snapshots
-                    
-                    // Añadir propiedades personalizadas
+
                     rtMaven.deployer
                         .addProperty('build.url', env.RUN_DISPLAY_URL)
                         .addProperty('build.user', env.USER)
-                        .addProperty('build.number', env.BUILD_NUMBER)
-                        .addProperty('build.job', env.JOB_NAME)
-                    
-                    // ✅ Ejecutar Maven y subir artefactos automáticamente
-                    def buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install -B -ntp'
-                    
-                    // Publicar build info en Artifactory
-                    server.publishBuildInfo buildInfo
-                    
-                    echo '✅ Artefacto subido exitosamente a Artifactory!'
+
+                    def buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install -B -ntp -DskipTests'
+                    server.publishBuildInfo buildInfo                    
                 }
             }
-        }
+        } 
     }
     
     // ============================================
@@ -131,7 +123,6 @@ pipeline {
         success {
             echo '🎉 PIPELINE COMPLETADO EXITOSAMENTE!'
             echo '📦 Artefacto disponible en Artifactory'
-            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
         }
         failure {
             echo '❌ El pipeline falló. Revisa los logs para más detalles.'
