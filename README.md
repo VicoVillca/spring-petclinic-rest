@@ -77,7 +77,7 @@ Spring PetClinic REST es una API RESTful desarrollada con Spring Boot para la ge
 
 ```
 URL: http://3.91.34.10:8080
-
+```
 
 #### 1.4 Configurar SonarQube en Jenkins
 
