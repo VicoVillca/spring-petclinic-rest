@@ -1,11 +1,3 @@
-# 🏥 Spring PetClinic REST - CI/CD Pipeline
-
-[![Java](https://img.shields.io/badge/Java-21-red)](https://adoptium.net/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7-green)](https://spring.io/projects/spring-boot)
-[![Maven](https://img.shields.io/badge/Maven-3.8.8-yellow)](https://maven.apache.org/)
-[![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-blue)](https://www.jenkins.io/)
-[![SonarQube](https://img.shields.io/badge/SonarQube-Quality-4E9BCD)](https://www.sonarqube.org/)
-[![JFrog](https://img.shields.io/badge/JFrog-Artifactory-6B8E23)](https://jfrog.com/artifactory/)
 
 ## 📋 Descripción del Proyecto
 
@@ -30,24 +22,6 @@ Spring PetClinic REST es una API RESTful desarrollada con Spring Boot para la ge
 - ✅ Análisis de calidad (SonarQube)
 - ✅ Generación de artefactos (JAR)
 - ✅ Publicación en Artifactory
-
-## 🛠️ Tecnologías Utilizadas
-
-| Tecnología | Versión | Propósito |
-|------------|---------|-----------|
-| Java | 21 | Lenguaje principal |
-| Spring Boot | 2.7 | Framework REST |
-| Spring Data JPA | - | Persistencia |
-| H2 Database | - | Base de datos en memoria |
-| Maven | 3.8.8 | Gestión de dependencias |
-| JUnit 5 | - | Pruebas unitarias |
-| JaCoCo | - | Cobertura de código |
-| **Jenkins** | - | CI/CD Pipeline |
-| **SonarQube** | - | Calidad de código |
-| **JFrog Artifactory** | - | Repositorio de artefactos |
-| **Docker** | - | Contenedorización |
-
----
 
 ## 🚀 Guía de Configuración CI/CD
 
